@@ -1,0 +1,23 @@
+# Redraws sheet.svg from live GitHub data once a day, and whenever I run it by hand.
+name: redraw-sheet
+on:
+  schedule: [{ cron: '30 1 * * *' }]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sheet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 24 }
+      - run: node scripts/sheet.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit if it changed
+        run: |
+          git config user.name patelaryandev
+          git config user.email 191586422+patelaryandev@users.noreply.github.com
+          git add sheet.svg
+          git diff --cached --quiet || git commit -m "Redraw sheet" && git push
